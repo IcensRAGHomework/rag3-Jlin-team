@@ -37,6 +37,12 @@ def generate_hw01():
             doc_text=row["HostWords"]
             documents.append(doc_text)
             
+            try:
+                dt=pd.to_datetime(row["CreateDate"])
+                timestamp=int(dt.timestamp())
+            except Exception:
+                timestamp=None
+            
             metadata={
                 "file_name":"COA_OpenData.csv",
                 "name":row["Name"],
@@ -45,7 +51,7 @@ def generate_hw01():
                 "tel":row["Tel"],
                 "city":row["City"],
                 "town":row["Town"],
-                "date":int(datetime.strptime(row["CreateDate"], "%Y-%m-%d").timestamp())
+                "date":timestamp
             }
             metadatas.append(metadata)
             ids.append(str(idx))
@@ -63,6 +69,13 @@ def generate_hw01():
         
     
 def generate_hw02(question:str, city:list, store_type:list, start_date:datetime, end_date:datetime):
+    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+        api_key = gpt_emb_config['api_key'],
+        api_base = gpt_emb_config['api_base'],
+        api_type = gpt_emb_config['openai_type'],
+        api_version = gpt_emb_config['api_version'],
+        deployment_id = gpt_emb_config['deployment_name']
+    )
 
     client = chromadb.PersistentClient(path=dbpath)
     collection = client.get_collection(name="TRAVEL", embedding_function=openai_ef)
