@@ -109,9 +109,10 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
         if similarity >= 0.80:
             filtered.append((similarity,meta["name"]))
             
-    filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
-    store_name = [name for name,_ in filtered]
-    return store_name
+    #filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
+    filtered.sort(key=lambda x: x[1], reverse=True)
+    store_names = [name for name,_ in filtered]
+    return store_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
     pass
