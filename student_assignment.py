@@ -4,7 +4,7 @@ import traceback
 from chromadb.utils import embedding_functions
 from model_configurations import get_model_configuration
 import pandas as pd
-from datetime import datetime
+import datetime
 from chromadb.config import Settings
 
 gpt_emb_version = 'text-embedding-ada-002'
@@ -94,7 +94,7 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     }
     
     query_results = collection.query(
-        query_texts=question,
+        query_texts=[question],
         n_results=10,
         where=where_filter
     )
@@ -109,7 +109,7 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
             filtered.append((similarity,meta["name"]))
             
     filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
-    store_name = [name for similarity, name in filtered]
+    store_name = [name for name,_ in filtered]
     return store_name
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
