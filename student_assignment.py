@@ -71,7 +71,6 @@ def generate_hw02(question, city, store_type, start_date, end_date):
     collection=generate_hw01()
     start_ts=int(start_date.timestamp())
     end_ts=int(end_date.timestamp())
-    
     where_filter={
         "$and":[
         {"city":{"$in":city}},
@@ -94,6 +93,7 @@ def generate_hw02(question, city, store_type, start_date, end_date):
         if similarity >= 0.80:
             filtered.append((query_results["metadatas"][0][i]["name"], similarity))
             
+    print(filtered)
     filtered.sort(key=lambda x: x[1], reverse=True)
     store_names = [name for name, _ in filtered]
     return store_names
