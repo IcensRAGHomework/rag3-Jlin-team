@@ -26,7 +26,6 @@ def generate_hw01():
         embedding_function=openai_ef
     )
     
-    
     if collection.count() == 0:
         df=pd.read_csv("COA_OpenData.csv")
     
@@ -78,7 +77,10 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     )
 
     client = chromadb.PersistentClient(path=dbpath)
-    collection = client.get_collection(name="TRAVEL", embedding_function=openai_ef)
+    collection = client.get_collection(
+        name="TRAVEL",
+        embedding_function=openai_ef
+        )
     start_ts=int(start_date.timestamp())
     end_ts=int(end_date.timestamp())
     
@@ -102,11 +104,12 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     
     filtered=[]
     for score, meta in zip(distances, metadatas):
-        if score >= 0.80:
-            filtered.append((score,meta["name"]))
+        similarity = 1 - score
+        if similarity >= 0.80:
+            filtered.append((similarity,meta["name"]))
             
     filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
-    store_name = [name for score, name in filtered]
+    store_name = [name for similarity, name in filtered]
     return store_name
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
