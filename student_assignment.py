@@ -85,14 +85,18 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     start_ts=int(start_date.timestamp())
     end_ts=int(end_date.timestamp())
     
-    where_filter={
-        "$and":[
-        {"city":{"$in":city}},
-        {"type":{"$in":store_type}},
-        {"date":{"$gte":start_ts}},
-        {"date":{"$lte":end_ts}}
-        ]
-    }
+    where_conditions = []
+    if city:
+        where_conditions.append({"city": {"$in": city}})
+    if store_type:
+        where_conditions.append({"type": {"$in": store_type}})
+    if start_date and end_date:
+        start_timestamp = int(start_date.timestamp())
+        end_timestamp = int(end_date.timestamp())
+        where_conditions.append({"date": {"$gte": start_timestamp}})
+        where_conditions.append({"date": {"$lte": end_timestamp}})
+
+    where_filter = {"$and": where_conditions} if where_conditions else None
     
     query_results = collection.query(
         query_texts=[question],
@@ -112,7 +116,7 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
             
     #filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
     filtered.sort(key=lambda x: x[1], reverse=True)
-    store_names = [name for name,_ in filtered]
+    store_names = [name for name, _ in filtered]
     return store_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
