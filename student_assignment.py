@@ -68,35 +68,53 @@ def generate_hw01():
         
     
 def generate_hw02(question, city, store_type, start_date, end_date):
-    collection=generate_hw01()
-    start_ts=int(start_date.timestamp())
-    end_ts=int(end_date.timestamp())
-    where_filter={
-        "$and":[
-        {"city":{"$in":city}},
-        {"type":{"$in":store_type}},
-        {"date":{"$gte":start_ts}},
-        {"date":{"$lte":end_ts}}
-        ]
-    }
-    
-    query_results = collection.query(
+    chroma_client = chromadb.PersistentClient(path=dbpath)
+    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=gpt_emb_config['api_key'],
+        api_base=gpt_emb_config['api_base'],
+        api_type=gpt_emb_config['openai_type'],
+        api_version=gpt_emb_config['api_version'],
+        deployment_id=gpt_emb_config['deployment_name']
+    )
+    collection = chroma_client.get_or_create_collection(
+        name="TRAVEL",
+        metadata={"hnsw:space": "cosine"},
+        embedding_function=openai_ef
+    )
+
+    where_conditions = []
+    if city:
+        where_conditions.append({"city": {"$in": city}})
+    if store_type:
+        where_conditions.append({"type": {"$in": store_type}})
+    if start_date and end_date:
+        start_timestamp = int(start_date.timestamp())
+        end_timestamp = int(end_date.timestamp())
+        where_conditions.append({"date": {"$gte": start_timestamp}})
+        where_conditions.append({"date": {"$lte": end_timestamp}})
+
+    where_filter = {"$and": where_conditions} if where_conditions else None
+
+    results = collection.query(
         query_texts=[question],
         n_results=10,
         where=where_filter,
         include=["metadatas", "distances"]
     )
-    
-    filtered=[]
-    for i, distance in enumerate(query_results["distances"][0]):
+
+    filtered_results = []
+    for i, distance in enumerate(results["distances"][0]):
         similarity = 1 - distance
         if similarity >= 0.80:
-            filtered.append((query_results["metadatas"][0][i]["name"], similarity))
-            
-    print(filtered)
-    filtered.sort(key=lambda x: x[1], reverse=True)
-    store_names = [name for name, _ in filtered]
-    return store_names
+            filtered_results.append((results["metadatas"][0][i]["name"], similarity))
+    
+    filtered_results.sort(key=lambda x: x[1], reverse=True)
+    filtered_names = [name for name, _ in filtered_results]
+
+    for name, similarity in filtered_results:
+        print(f"- {name}: similarity {similarity:.3f}")
+    
+    return filtered_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
     pass
