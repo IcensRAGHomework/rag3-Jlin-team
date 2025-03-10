@@ -33,12 +33,6 @@ def generate_hw01():
     for idx, row in df.iterrows():
         doc_text=row["HostWords"]
         documents.append(doc_text)
-    
-        try:
-            dt=pd.to_datetime(row["CreateDate"])
-            timestamp=int(dt.timestamp())
-        except Exception:
-            timestamp=None
             
         metadata={
             "file_name":"COA_OpenData.csv",
@@ -48,7 +42,7 @@ def generate_hw01():
             "tel":row["Tel"],
             "city":row["City"],
             "town":row["Town"],
-            "date":timestamp
+            "date":int(datetime.strptime(row["CreateDate"], "%Y-%m-%d").timestamp())
         }
         metadatas.append(metadata)
         ids.append(str(idx))
@@ -116,7 +110,3 @@ def demo(question):
     )
     
     return collection
-
-
-
-print(generate_hw01())
