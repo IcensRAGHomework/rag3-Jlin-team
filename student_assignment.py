@@ -97,17 +97,18 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     query_results = collection.query(
         query_texts=[question],
         n_results=10,
-        where=where_filter
+        where=where_filter,
+        include=["metadatas", "distances"]
     )
     
-    distances = query_results.get("distances",[[]])[0]
-    metadatas = query_results.get("metadatas",[[]])[0]
+    #distances = query_results.get("distances",[[]])[0]
+    #metadatas = query_results.get("metadatas",[[]])[0]
     
     filtered=[]
-    for score, meta in zip(distances, metadatas):
-        similarity = 1 - score
+    for i, distance in enumerate(query_results["distances"][0]):
+        similarity = 1 - distance
         if similarity >= 0.80:
-            filtered.append((similarity,meta["name"]))
+            filtered.append((query_results["metadatas"][0][i]["name"], similarity))
             
     #filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
     filtered.sort(key=lambda x: x[1], reverse=True)
