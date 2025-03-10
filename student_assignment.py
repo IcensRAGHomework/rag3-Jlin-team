@@ -68,23 +68,20 @@ def generate_hw01():
         
     
 def generate_hw02(question:str, city:list, store_type:list, start_date:datetime, end_date:datetime):
+    chroma_client = chromadb.PersistentClient(path=dbpath)
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-        api_key = gpt_emb_config['api_key'],
-        api_base = gpt_emb_config['api_base'],
-        api_type = gpt_emb_config['openai_type'],
-        api_version = gpt_emb_config['api_version'],
-        deployment_id = gpt_emb_config['deployment_name']
+        api_key=gpt_emb_config['api_key'],
+        api_base=gpt_emb_config['api_base'],
+        api_type=gpt_emb_config['openai_type'],
+        api_version=gpt_emb_config['api_version'],
+        deployment_id=gpt_emb_config['deployment_name']
     )
-
-    client = chromadb.PersistentClient(path=dbpath)
-    collection = client.get_or_create_collection(
+    collection = chroma_client.get_or_create_collection(
         name="TRAVEL",
         metadata={"hnsw:space": "cosine"},
         embedding_function=openai_ef
     )
-    start_ts=int(start_date.timestamp())
-    end_ts=int(end_date.timestamp())
-    
+
     where_conditions = []
     if city:
         where_conditions.append({"city": {"$in": city}})
@@ -97,27 +94,29 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
         where_conditions.append({"date": {"$lte": end_timestamp}})
 
     where_filter = {"$and": where_conditions} if where_conditions else None
-    
-    query_results = collection.query(
+
+    results = collection.query(
         query_texts=[question],
         n_results=10,
         where=where_filter,
         include=["metadatas", "distances"]
     )
-    
-    #distances = query_results.get("distances",[[]])[0]
-    #metadatas = query_results.get("metadatas",[[]])[0]
-    
-    filtered=[]
-    for i, distance in enumerate(query_results["distances"][0]):
+
+    filtered_results = []
+    for i, distance in enumerate(results["distances"][0]):
         similarity = 1 - distance
         if similarity >= 0.80:
-            filtered.append((query_results["metadatas"][0][i]["name"], similarity))
-            
-    #filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
-    filtered.sort(key=lambda x: x[1], reverse=True)
-    store_names = [name for name, _ in filtered]
-    return store_names
+            filtered_results.append((results["metadatas"][0][i]["name"], similarity))
+    
+    filtered_results.sort(key=lambda x: x[1], reverse=True)
+    filtered_names = [name for name, _ in filtered_results]
+
+    # 調試用：顯示相似度（不影響最終輸出格式）
+    print(f"調試資訊：找到 {len(filtered_results)} 個符合條件的店家")
+    for name, similarity in filtered_results:
+        print(f"- {name}: 相似度 {similarity:.3f}")
+    
+    return filtered_names
     
 def generate_hw03(question, store_name, new_store_name, city, store_type):
     pass
