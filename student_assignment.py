@@ -68,20 +68,7 @@ def generate_hw01():
         
     
 def generate_hw02(question, city, store_type, start_date, end_date):
-    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-        api_key = gpt_emb_config['api_key'],
-        api_base = gpt_emb_config['api_base'],
-        api_type = gpt_emb_config['openai_type'],
-        api_version = gpt_emb_config['api_version'],
-        deployment_id = gpt_emb_config['deployment_name']
-    )
-
-    client = chromadb.PersistentClient(path=dbpath)
-    collection = client.get_or_create_collection(
-        name="TRAVEL",
-        metadata={"hnsw:space": "cosine"},
-        embedding_function=openai_ef
-    )
+    collection=generate_hw01()
     start_ts=int(start_date.timestamp())
     end_ts=int(end_date.timestamp())
     
@@ -101,16 +88,12 @@ def generate_hw02(question, city, store_type, start_date, end_date):
         include=["metadatas", "distances"]
     )
     
-    #distances = query_results.get("distances",[[]])[0]
-    #metadatas = query_results.get("metadatas",[[]])[0]
-    
     filtered=[]
     for i, distance in enumerate(query_results["distances"][0]):
         similarity = 1 - distance
         if similarity >= 0.80:
             filtered.append((query_results["metadatas"][0][i]["name"], similarity))
             
-    #filtered = sorted(filtered, key=lambda x:x[0], reverse=True)
     filtered.sort(key=lambda x: x[1], reverse=True)
     store_names = [name for name, _ in filtered]
     return store_names
