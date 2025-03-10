@@ -19,8 +19,7 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         deployment_id = gpt_emb_config['deployment_name']
     )
 def generate_hw01():
-    settings = Settings(persist_directory="chroma.sqlite3")
-    client = chromadb.PersistentClient(path=dbpath, settings=settings)
+    client = chromadb.PersistentClient(path=dbpath)
     collection = client.get_or_create_collection(
         name="TRAVEL",
         metadata={"hnsw:space":"cosine"},
@@ -117,3 +116,7 @@ def demo(question):
     )
     
     return collection
+
+
+
+print(generate_hw01())
