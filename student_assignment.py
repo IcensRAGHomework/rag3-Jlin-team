@@ -19,7 +19,6 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         deployment_id = gpt_emb_config['deployment_name']
     )
 def generate_hw01():
-    
     settings = Settings(persist_directory="chroma.sqlite3")
     client = chromadb.PersistentClient(path=dbpath, settings=settings)
     collection = client.get_or_create_collection(
