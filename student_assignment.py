@@ -77,10 +77,11 @@ def generate_hw02(question:str, city:list, store_type:list, start_date:datetime,
     )
 
     client = chromadb.PersistentClient(path=dbpath)
-    collection = client.get_collection(
+    collection = client.get_or_create_collection(
         name="TRAVEL",
+        metadata={"hnsw:space": "cosine"},
         embedding_function=openai_ef
-        )
+    )
     start_ts=int(start_date.timestamp())
     end_ts=int(end_date.timestamp())
     
